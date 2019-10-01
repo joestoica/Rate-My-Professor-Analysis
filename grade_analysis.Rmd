@@ -1,0 +1,65 @@
+---
+title: "Untitled"
+author: "Joe Stoica"
+date: "9/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+#library(stoic)
+library(alr4)
+grades <- read_csv("rmp_dist_full.csv")
+```
+
+```{r}
+m <- lm(rmp_info ~ avg_sect_gpa + avg_stdnt_cum_gpa, grades)
+summary(m)
+``` 
+
+```{r}
+grades %>% 
+    select(rmp_info, avg_sect_gpa, avg_stdnt_cum_gpa) %>%     
+    pairs()
+```
+
+```{r}
+plot(m)
+```
+
+
+```{r}
+avPlots(m)
+``` 
+
+```{r}
+grades %>% 
+    ggplot(aes(avg_stdnt_cum_gpa, rmp_info))+
+    geom_point()+
+    geom_smooth(method = "lm")+
+    theme_minimal()
+```
+
+```{r}
+f <- grades %>% 
+    select(department) %>% 
+    group_by(department) %>% 
+    count() %>% 
+    ungroup() %>% 
+    top_n(9, n) %>% 
+    data.frame()
+
+```
+
+
+```{r}
+grades %>% 
+    filter(department %in% c("BUS", "EDUC", "ENG", "HISP", 
+                             "MATH", "MUS", "PSY", "SPEA", "SPH")) %>% 
+    ggplot(aes(avg_sect_gpa))+
+    geom_density()+
+    facet_wrap(.~department, nrow = 3)+
+    theme_minimal()
+```
+

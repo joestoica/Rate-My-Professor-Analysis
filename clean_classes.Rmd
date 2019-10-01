@@ -1,0 +1,60 @@
+---
+title: "Untitled"
+author: "Joe Stoica"
+date: "9/30/2019"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stoic)
+library(plyr)
+```
+
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+files <- list.files("grades/")
+dfs <- lapply(paste0("grades/", files), read_csv)
+
+make_col_match <- function(df) {
+    df$TERM = as.character(df$TERM)
+    df$COURSE = as.character(df$COURSE)
+    return(df)
+}
+dfs1 = lapply(dfs, make_col_match)
+
+dfs1 <- bind_rows(dfs1)
+#write.csv(dfs1, "~/Desktop/test/full_classes.csv")
+```
+
+```{r warning=FALSE, message=FALSE}
+classes <- read_csv("full_classes.csv")
+``` 
+
+```{r}
+names(classes) <- clean_df_names(classes)
+``` 
+
+```{r}
+clean <- classes %>% 
+    # remove NR courses
+    filter(nr != "NR") %>% 
+    # remove weird column outta nowhere
+    select(-c(x1, x45))
+```
+
+```{r}
+clean$instructor_name <- gsub(",", ", ", clean$instructor_name)
+
+clean <- clean %>% 
+    separate(instructor_name, into = c("last", "first"), sep = ", ", remove = FALSE) %>% 
+    mutate(first = gsub("\\s.*", "", first))
+``` 
+
+```{r}
+write_csv(clean, "clean_full_classes.csv")
+```
+
+
+
+
+

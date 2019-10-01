@@ -1,0 +1,16 @@
+```{r}
+library(reticulate)
+#py_install("pandas")
+#py_install("matplotlib")
+#py_install("lxml")
+use_condaenv("r-reticulate")
+```
+
+```{r}
+reticulate::source_python("~/Documents/life/r/grades/test.py")
+```
+
+```{r}
+reticulate::source_python("~/Documents/life/r/grades/get_all_rmp_names.py")
+```
+

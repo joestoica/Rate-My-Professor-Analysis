@@ -1,0 +1,78 @@
+---
+title: "Untitled"
+author: "Joe Stoica"
+date: "9/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stoic)
+library(plyr)
+```
+
+```{r load data, message=FALSE}
+classes <- read_csv("clean_full_classes.csv")
+rmp <- read_csv("rmp.csv")
+```
+
+```{r sep names}
+rmp_clean <- rmp %>% 
+    filter(name != "") %>% 
+    separate(name, into = c("last", "first"), sep = ", ", remove = FALSE)
+```
+
+# Check names  for matches
+
+```{r}
+classes_sub <- classes %>% 
+    select(instructor_name, last, first) %>% 
+    unique()
+
+# We can see the full matches
+rmp_full <- tolower(rmp_clean$name)
+dist_full <- classes_sub$instructor_name
+
+# Which last names match
+rmp_last <- tolower(rmp_clean$last)
+dist_last <- tolower(classes_sub$last)
+
+# Which Partial names match
+rmp_first <- tolower(substr(rmp_clean$first, 1, 4))
+dist_first <- substr(tolower(classes_sub$first), 1, 4)
+
+rmp_df <- data.frame(rmp_full, rmp_last, rmp_first)
+dist_df <- data.frame(dist_full, dist_last, dist_first)
+``` 
+
+```{r}
+name_match_list <- lapply(dist_last, function(x) which(rmp_last %in% x))
+
+n <- length(name_match_list)
+x = list()
+
+
+i =10
+for (i in 1:n) {
+    x[[i]] = rmp_full[name_match_list[[i]]][dist_first[i] == rmp_first[name_match_list[[i]]]]
+}
+``` 
+
+```{r}
+dist_df$rmp_name <- unlist(lapply(x, function(y){ifelse(identical(y, character(0)), "", y)}))
+``` 
+
+```{r}
+classes_joined <- classes %>% 
+    left_join(dist_df %>% select(dist_full, rmp_name) %>% dplyr::rename(instructor_name = dist_full), by = "instructor_name") %>% 
+    left_join(rmp_clean %>% select(name, tags, rmp_info, take_again) %>% dplyr::rename(rmp_name = name) %>% mutate(rmp_name = tolower(rmp_name)), by = "rmp_name") %>% 
+    filter(rmp_name != "",
+           !is.na(rmp_info))
+```
+
+
+```{r}
+#write_csv(classes_joined, "rmp_dist_full.csv")
+```
+
